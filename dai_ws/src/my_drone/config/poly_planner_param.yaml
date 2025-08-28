@@ -1,0 +1,14 @@
+poly_traj:
+  polynomial_degree: 7
+  differential_degree: 4  # 4 for minimum snap
+  continuity_degree: 4
+  desired_velocity: 0.8
+  desired_acceleration: 1.0
+  initial_radius: 0.8       # Start with a generous corridor
+  timeout: 0.5              # Timeout for the solver
+  corridor_res: 5.0
+  shrinking_factor: 0.8
+  soft_constraint: false
+  sample_delta_time: 0.1
+  maximum_iteration_num: 10
+  use_pwl_failsafe: true    # Important: If optimization fails, it will return a simpler linear path

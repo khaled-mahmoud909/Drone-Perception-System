@@ -1,0 +1,21 @@
+# Parameters for RTAB-Map Odometry
+# This file should be loaded into the /rtabmap/rgbd_odometry namespace
+
+# --- CORE ---
+Odom/Strategy: 0        # 0=Frame-to-Map (more robust), 1=Frame-to-Frame (faster but drifts more)
+Odom/ResetCountdown: 1  # If odometry is lost, try to recover after 1 frame instead of 10.
+
+# --- VISUAL FEATURES (CRITICAL for your issue) ---
+Vis/CorType: 1          # 1=Correspondences by features, 0=by optical flow. Features are good for texture.
+Vis/MaxFeatures: 1000   # Increase the number of features to extract from each image. Default is 400.
+Vis/MinInliers: 15      # Keep the minimum required inliers at 15.
+Vis/PnPFlags: 0         # 0=Iterative (more robust), 1=EPnP, 2=P3P
+
+# --- IMU INTEGRATION ---
+# Telling RTAB-Map to expect and use the IMU makes the odometry much more stable.
+Reg/Force3DoF: false    # We are a flying drone, so we need 6DoF.
+Odom/Holonomic: true    # Drones can move sideways.
+Odom/AlignWithGravity: true # Use the IMU to keep the map level.
+
+# --- PERFORMANCE ---
+Odom/ImageDecimation: 1 # We are already feeding it 640x400, no need to decimate further.

@@ -1,0 +1,14 @@
+<launch>
+    <include file="$(find depthai_ros_driver)/launch/rtabmap.launch">
+        <arg name="rtabmap_enabled"     value="true"/>
+        <arg name="rtabmap_viz_enabled" value="false"/>
+    </include>
+
+    <param name="/rtabmap/Mem/IncrementalMemory" type="string" value="true"/>
+    <param name="/rtabmap/Mem/InitWMWithMap"     type="string" value="false"/> <!-- Don't load a pre-existing map -->
+    <param name="/rtabmap/Grid/FromDepth"        type="bool"   value="false"/> <!-- Ensure it doesn't try to build a grid map -->
+
+
+        <rosparam file="$(find map_manager)/cfg/dynamic_map_param.yaml" ns="/dynamic_map" />
+	<rosparam file="$(find onboard_detector)/cfg/detector_param.yaml" ns="/onboard_detector" />
+</launch>

@@ -1,0 +1,36 @@
+# Parameters for the ROS1 depthai-ros driver
+/oak:
+    camera_i_pipeline_type: RGBD
+    camera_i_publish_tf_from_calibration: true
+    camera_i_nn_type: none
+    camera_i_enable_ir: true
+    camera_i_laser_dot_brightness: 1000  # mA, range 0-1200
+    camera_i_floodlight_brightness: 200   # mA, range 0-1500. Use if scene is dark.
+    camera_i_enable_imu: true
+
+    stereo_i_align_depth: true  # Align depth map to the RGB camera's view
+    stereo_i_board_socket_id: 0
+    stereo_i_width: 320
+    stereo_i_height: 200
+    stereo_i_lr_check: true
+    stereo_i_subpixel: true
+    stereo_i_stereo_conf_threshold: 220 # A good balance for more points
+
+    left_i_resolution: "400P"
+    left_i_width: 320
+    left_i_height: 200
+    left_i_fps: 20.0
+
+    right_i_resolution: "400P"
+    right_i_width: 320
+    right_i_height: 200
+    right_i_fps: 20.0
+
+    rgb_i_resolution: "1080P"
+    rgb_i_enable_preview: true
+    rgb_i_preview_width: 320
+    rgb_i_preview_height: 200
+    rgb_i_fps: 20.0
+    rgb_i_publish_video: false
+    rgb_i_output_isp: false
+    rgb_i_interleaved: false

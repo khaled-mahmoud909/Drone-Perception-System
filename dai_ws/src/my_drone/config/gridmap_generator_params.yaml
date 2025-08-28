@@ -1,0 +1,9 @@
+# Input topic for the 3D obstacle cloud
+input_topic: "/dynamic_map/inflated_voxel_map" # Use the inflated map for safety
+
+# Output topic for the 2D OccupancyGrid
+output_topic: "/generated_2d_map"
+
+# Map parameters - MUST MATCH YOUR DYNAMIC_MAP_PARAM.YAML
+map_resolution: 0.1
+map_size: [20.0, 20.0, 4.0] # [X, Y, Z]

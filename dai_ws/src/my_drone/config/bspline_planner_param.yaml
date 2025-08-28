@@ -1,0 +1,17 @@
+bspline_traj:
+  timestep: 0.2
+  distance_threshold: 0.4
+  max_vel: 0.8                # Set your drone's desired max speed (m/s)
+  max_acc: 0.8                # Set your drone's desired max acceleration (m/s^2)
+  weight_distance: 1000.0        # High penalty for getting close to obstacles
+  weight_smoothness: 0.1        # Penalty for jerky movements
+  weight_feasibility: 10.0      # Penalty for violating velocity/acceleration limits
+  weight_dynamic_obstacle: 150.0 # High penalty for getting close to dynamic obstacles
+  plan_in_z_axis: true
+  min_height: 0.3               # Minimum flight altitude
+  max_height: 2.5               # Maximum flight altitude
+  uncertain_aware_factor: 2.0
+  prediction_horizon: 1.5
+  distance_threshold_dynamic: 0.8
+  max_path_length: 7.0
+  max_obstacle_size: [10.0, 10.0, 10.0]

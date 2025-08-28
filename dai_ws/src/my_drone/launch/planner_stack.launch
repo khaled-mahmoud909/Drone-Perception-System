@@ -1,0 +1,16 @@
+<launch>
+    <!-- ============== 1. LAUNCH PERCEPTION STACK ============== -->
+    <!-- (Camera, TF, Odometry, Map Manager, Detector) -->
+    <!-- This part includes all the nodes needed to produce the map -->
+    <include file="$(find my_drone)/launch/perception_stack.launch" />
+
+    <!-- ============== 2. LAUNCH THE EXPLORATION PLANNER ============== -->
+    <!-- Load the parameters for the planner -->
+    <rosparam file="$(find my_drone)/config/dep_param.yaml" ns="/DEP" />
+    
+    <!-- Launch the exploration planner node -->
+    <node pkg="my_drone" type="exploration_planner_node" name="exploration_planner_node" output="screen" />
+
+    <!-- ============== 3. VISUALIZATION ============== -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find my_drone)/rviz/exploration.rviz" required="true"/>
+</launch>

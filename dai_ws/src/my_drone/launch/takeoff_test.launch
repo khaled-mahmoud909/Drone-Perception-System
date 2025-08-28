@@ -1,0 +1,24 @@
+<launch>
+    <!-- 1. Launch MAVROS to connect to the flight controller -->
+    <node pkg="mavros" type="mavros_node" name="mavros" output="screen" clear_params="true">
+        <!-- Connection settings -->
+        <param name="fcu_url" value="serial:///dev/ttyAMA0:921600" />
+        <param name="gcs_url" value="" />
+        <param name="target_system_id" value="1" />
+        <param name="target_component_id" value="1" />
+        <!-- Load the custom APM config file -->
+        <rosparam command="load" file="$(find my_drone)/config/apm_config.yaml" />
+    </node>
+
+    <!-- 2. Launch the perception stack for localization -->
+    <include file="$(find my_drone)/launch/rtabmap.launch">
+        <!-- CRITICAL: Disable the main SLAM node to free up CPU for odometry -->
+        <arg name="rtabmap_enabled"     value="true"/>
+        <arg name="rtabmap_viz_enabled" value="false"/>
+    </include>
+
+    <!-- These parameters are for the disabled rtabmap node, but can be left -->
+    <param name="/rtabmap/Mem/IncrementalMemory" type="string" value="false"/>
+    <param name="/rtabmap/Mem/InitWMWithMap"     type="string" value="false"/>
+    <param name="/rtabmap/Grid/FromDepth"        type="bool"   value="false"/>
+</launch>

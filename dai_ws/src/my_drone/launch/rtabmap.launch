@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="rtabmap_enabled"     default="true"/>
+    <arg name="rtabmap_viz_enabled" default="true"/>
+
+    <arg name="name" default="oak" />
+    <arg name="params_file" default="$(find my_drone)/config/oakd_params.yaml" />
+    
+    <arg name="cam_pos_x"    default="0.15" /> <arg name="cam_pos_y"    default="0.0" />  <arg name="cam_pos_z"    default="-0.1" /> <arg name="cam_roll"     default="0.0" />  <arg name="cam_pitch"    default="0.0" />  <arg name="cam_yaw"      default="0.0" />  <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_camera_broadcaster" 
+          args="$(arg cam_pos_x) $(arg cam_pos_y) $(arg cam_pos_z) $(arg cam_yaw) $(arg cam_pitch) $(arg cam_roll) base_link oak-d-base-frame" />
+
+    <include file="$(find depthai_ros_driver)/launch/camera.launch">
+        <arg name="name" value="$(arg name)"/>
+        <arg name="params_file" value="$(arg params_file)"/>
+    </include>
+
+    <node type="rgbd_odometry" name="rgbd_odometry" pkg="rtabmap_odom" output="screen">
+        <remap from="rgb/image" to="$(arg name)/rgb/preview/image_raw"/>
+        <remap from="rgb/camera_info" to="$(arg name)/rgb/preview/camera_info"/>
+        <remap from="depth/image" to="$(arg name)/stereo/image_raw"/>
+       
+        <param name="sync_queue_size" type="int" value="100"/>
+        <param name="frame_id" type="string" value="base_link"/>
+        <rosparam param="subscribe_depth">True</rosparam>
+        <rosparam param="approx_sync">True</rosparam>
+        <rosparam param="approx_sync_max_interval">0.05</rosparam>
+        <param name="wait_for_transform" type="double" value="0.2"/>        
+
+     	<!-- PERFORMANCE TUNING PARAMETERS -->
+        <!-- Set the target rate to match the camera FPS -->
+        <param name="Odom/UpdateRate" type="string" value="20"/>
+        <!-- CRITICAL: Disable ICP scan matching to save significant CPU -->
+        <param name="Odom/ScanMatching" type="string" value="false"/>
+        <!-- Reduce feature count to a reasonable number for faster processing -->
+        <param name="Vis/MaxFeatures" type="string" value="500"/>
+
+        <!-- Other odometry parameters -->
+        <param name="Odom/Holonomic" type="bool" value="true" />
+        <param name="tf_tolerance" type="double" value="0.5"/>
+        <param name="Odom/Strategy" type="string" value="0"/>
+        <param name="Vis/MinInliers" type="string" value="25"/>
+
+    </node>
+    <group if="$(arg rtabmap_enabled)">
+        <node type="rtabmap" name="rtabmap" pkg="rtabmap_slam" output="screen" args="-d">
+            <remap from="rgb/image" to="$(arg name)/rgb/preview/image_raw"/>
+            <remap from="rgb/camera_info" to="$(arg name)/rgb/preview/camera_info"/>
+            <remap from="depth/image" to="$(arg name)/stereo/image_raw"/>       
+
+            <param name="sync_queue_size" type="int" value="100"/>
+            <param name="frame_id" type="string" value="base_link"/>
+            <param name="subscribe_depth" type="bool" value="true"/>
+            <param name="approx_sync" type="bool" value="true"/>
+
+            <param name="tf_tolerance" type="double" value="0.5"/>
+            <rosparam param="Rtabmap/DetectionRate">3.5</rosparam>
+<!--	<param name="Grid/FromDepth"      type="bool"   value="true"/>
+	<param name="Grid/CellSize"       type="double" value="0.05"/>
+	<param name="Grid/RangeMax"       type="double" value="3.0"/>
+	<param name="Grid/RayTracing"         type="bool"   value="true"/>
+	<param name="Grid/ClusterRadius"  type="double" value="0.1"/>
+	<param name="Grid/MinClusterSize" type="int"    value="10"/>
+	<param name="Grid/MaxObstacleHeight"  type="double" value="1.8"/> -->   <!-- Ignore points above this height (e.g., ceilings) -->
+    <!--	<param name="Grid/NormalSegmentation" type="bool"   value="true"/> --> <!-- Use surface normals to find flat surfaces -->
+<!--    	<param name="Grid/GroundNormalsUp"    type="double" value="0.90"/> -->
+        </node>
+    </group>
+
+    <!-- Visualization (can be disabled to save resources) -->
+    <group if="$(arg rtabmap_viz_enabled)">
+        <node type="rtabmap_viz" name="rtabmap_viz" pkg="rtabmap_viz">
+            <remap from="rgb/image" to="$(arg name)/rgb/preview/image_raw"/>
+            <remap from="rgb/camera_info" to="$(arg name)/rgb/preview/camera_info"/>
+            <remap from="depth/image" to="$(arg name)/stereo/image_raw"/>
+            <remap from="odom" to="/rtabmap/odom"/>
+        </node>
+    </group>
+
+</launch>

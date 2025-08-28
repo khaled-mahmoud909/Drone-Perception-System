@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drone GCS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+        <!--
+        ROS 3D Viewer Dependencies
+        ORDER IS IMPORTANT!
+        -->
+        <!-- 1. EventEmitter2 (local file) -->
+        <script src="/eventemitter2.js"></script>
+
+        <!-- 2. ROSLIB.js (from a reliable CDN) -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/roslibjs/1.0.0/roslib.min.js"></script>
+
+        <!-- 4. ROS3D.js (local file) -->
+        <script src="/ros3d.min.js"></script>
+
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

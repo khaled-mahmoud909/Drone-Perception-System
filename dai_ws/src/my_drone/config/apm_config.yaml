@@ -1,0 +1,18 @@
+# MAVROS APM-specific configurations
+#
+# Using a whitelist is the most efficient way to run MAVROS on a
+# resource-constrained companion computer for VIO flight.
+# We explicitly load ONLY the plugins required.
+plugin_whitelist:
+  # --- Absolutely Essential Plugins ---
+  - 'sys_status'              # Handles heartbeat and basic connection status. DO NOT DISABLE.
+  - 'state'                   # Publishes /mavros/state. Essential for scripts.
+  - 'command'                 # Provides services for arming, mode setting, etc. Essential for scripts.
+  - 'local_position'          # Handles EKF output and setpoints for position control.
+  - 'vision_pose_estimate'    # Receives the vision data from your /mavros/vision_pose/pose topic.
+
+  # --- Highly Recommended for Debugging & Operation ---
+  - 'imu'                     # Publishes IMU data from the FCU.
+  - 'param'                   # Allows getting/setting FCU parameters via ROS services.
+  
+  # --- Everything else is now disabled ---

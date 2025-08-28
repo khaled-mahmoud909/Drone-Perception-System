@@ -1,0 +1,93 @@
+1:  // Initialization Phase
+2:  Start Node "controlled_opt_explor_plan_node"
+3:  
+4:  // Instantiate and initialize all core system components
+5:  map_manager <= NEW DynamicMap()
+6:  global_planner <= NEW DynamicExplorationPlanner()
+7:  trajectory_planner <= NEW PolynomialTrajectoryPlanner()
+8:  
+9:  // Establish dependencies between components
+10:  global_planner.setMap(map_manager)
+11:  trajectory_planner.setMap(map_manager)
+12:  
+13:  // Setup ROS communication interfaces
+14:  Subscribe to /odom topic for drone's current state
+15:  Create publisher for /global_path (for visualization)
+16:  Create publisher for /final_trajectory (for visualization)
+17:  Create publisher for /autonomous_flight/target_state (for the controller)
+18:
+19:  // --- Main Planning and Execution Thread ---
+20:  
+21:  // Safe Startup Sequence
+22:  LOOP until (Odometry is received AND Map is initialized)
+23:      PRINT "Waiting for system dependencies..."
+24:      WAIT for 1 second
+25:  END LOOP
+26:  PRINT "System ready. Starting autonomous exploration."
+27:  
+28:  // Main Autonomous Loop
+29:  LOOP forever
+30:      PRINT "--- Starting New Planning Cycle ---"
+31:      
+32:      // --- STAGE 1: Global Planning ---
+33:      global_plan_success <= global_planner.makePlan()
+34:      
+35:      IF global_plan_success is FALSE THEN
+36:          PRINT "WARN: Global planner failed. Retrying in next cycle."
+37:          WAIT for 2 seconds
+38:          CONTINUE to next loop iteration
+39:      END IF
+40:      
+41:      rough_path <= global_planner.getBestPath()
+42:      
+43:      IF rough_path contains fewer than 2 waypoints THEN
+44:          PRINT "INFO: Exploration complete or no valid path found."
+45:          WAIT for 2 seconds
+46:          CONTINUE to next loop iteration
+47:      END IF
+48:      
+49:      Publish rough_path to /global_path for visualization
+50:      
+51:      // --- STAGE 2: Local Trajectory Optimization ---
+52:      trajectory_planner.updatePath(rough_path)
+53:      trajectory_plan_success <= trajectory_planner.makePlan()
+54:      
+55:      IF trajectory_plan_success is FALSE THEN
+56:          PRINT "WARN: Trajectory optimization failed. Skipping path and retrying."
+57:          WAIT for 2 seconds
+58:          CONTINUE to next loop iteration
+59:      END IF
+60:      
+61:      final_trajectory <= trajectory_planner.getFinalTrajectory()
+62:      Publish final_trajectory to /final_trajectory for visualization
+63:      
+64:      // --- STAGE 3: Trajectory Execution ---
+65:      PRINT "Executing new trajectory..."
+66:      ExecuteTrajectory(final_trajectory)
+67:      
+68:      WAIT for 2 seconds // Wait before starting the next full cycle
+69:  END LOOP
+70:
+71:  // --- Trajectory Execution Sub-routine ---
+72:  FUNCTION ExecuteTrajectory(trajectory_to_follow)
+73:      duration <= trajectory_to_follow.getDuration()
+74:      start_time <= current_time
+75:      
+76:      LOOP while (current_time - start_time) <= duration
+77:          // Calculate the current point in time along the trajectory
+78:          time_elapsed <= current_time - start_time
+79:          
+80:          // Get the desired state (pos, vel, acc) from the trajectory object
+81:          desired_pos <= trajectory_to_follow.getPositionAtTime(time_elapsed)
+82:          desired_vel <= trajectory_to_follow.getVelocityAtTime(time_elapsed)
+83:          desired_acc <= trajectory_to_follow.getAccelerationAtTime(time_elapsed)
+84:          desired_yaw <= calculateYawFromVelocity(desired_vel)
+85:          
+86:          // Create and publish the target state message for the controller
+87:          target_message <= CreateTargetMessage(desired_pos, desired_vel, desired_acc, desired_yaw)
+88:          Publish target_message to /autonomous_flight/target_state
+89:          
+90:          WAIT for 20 milliseconds (to achieve a 50Hz control rate)
+91:      END LOOP
+92:      PRINT "Trajectory execution finished."
+93:  END FUNCTION

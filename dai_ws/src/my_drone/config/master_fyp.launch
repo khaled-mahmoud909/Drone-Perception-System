@@ -1,0 +1,83 @@
+<launch>
+    <!-- ============== ARGS ================== -->
+    <arg name="name" default="oak" />
+    <arg name="use_rtabmap_viz" default="true" />
+    <arg name="use_detector_rviz" default="false" />
+    
+    <!-- Camera TF arguments -->
+    <arg name="base_frame" default="base_link" />
+    <arg name="parent_frame" default="oak-d-base-frame" />
+    <arg name="cam_pos_x" default="0.15" />
+    <arg name="cam_pos_y" default="0.0" />
+    <arg name="cam_pos_z" default="-0.1" />
+    <arg name="cam_roll" default="0.0" />
+    <arg name="cam_pitch" default="0.0" />
+    <arg name="cam_yaw" default="0.0" />
+
+    <!-- ============== CAMERA DRIVER ================== -->
+    <!-- Load parameters for the camera driver -->
+    <rosparam file="$(find my_drone)/config/oakd_params.yaml" />
+
+    <!-- Set TF parameters for camera -->
+    <param name="/$(arg name)/camera_i_base_frame" value="$(arg base_frame)" />
+    <param name="/$(arg name)/camera_i_parent_frame" value="$(arg parent_frame)" />
+    <param name="/$(arg name)/camera_i_cam_pos_x" value="$(arg cam_pos_x)" />
+    <param name="/$(arg name)/camera_i_cam_pos_y" value="$(arg cam_pos_y)" />
+    <param name="/$(arg name)/camera_i_cam_pos_z" value="$(arg cam_pos_z)" />
+    <param name="/$(arg name)/camera_i_cam_roll" value="$(arg cam_roll)" />
+    <param name="/$(arg name)/camera_i_cam_pitch" value="$(arg cam_pitch)" />
+    <param name="/$(arg name)/camera_i_cam_yaw" value="$(arg cam_yaw)" />
+
+    <!-- Launch the camera nodelets -->
+    <include file="$(find depthai_ros_driver)/launch/camera.launch">
+        <arg name="name" value="$(arg name)"/>
+        <arg name="parent_frame" value="$(arg parent_frame)"/>
+        <arg name="enable_pointcloud" value="false" /> <!-- RTAB-Map doesn't need this, it uses depth_image_proc -->
+        <arg name="rectify_rgb" value="true" />
+    </include>
+
+    <!-- ============== RTAB-MAP (SLAM and Odometry) ================== -->
+    <!-- Odometry Node -->
+    <node pkg="rtabmap_odom" type="rgbd_odometry" name="rgbd_odometry" output="screen">
+        <remap from="rgb/image"       to="/$(arg name)/rgb/preview/image_rect"/>
+        <remap from="depth/image"     to="/$(arg name)/stereo/image_raw"/>
+        <remap from="rgb/camera_info" to="/$(arg name)/rgb/preview/camera_info"/>
+        <remap from="odom"            to="/rtabmap/odom"/> <!-- Remap odom to match detector -->
+        
+        <param name="frame_id" type="string" value="$(arg base_frame)"/>
+        <param name="approx_sync" type="bool" value="true"/>
+    </node>
+    
+    <!-- SLAM Node -->
+    <node pkg="rtabmap_slam" type="rtabmap" name="rtabmap" output="screen" args="-d">
+        <remap from="rgb/image"       to="/$(arg name)/rgb/preview/image_rect"/>
+        <remap from="depth/image"     to="/$(arg name)/stereo/image_raw"/>
+        <remap from="rgb/camera_info" to="/$(arg name)/rgb/preview/camera_info"/>
+        <remap from="odom"            to="/rtabmap/odom"/>
+        
+        <param name="frame_id" type="string" value="$(arg base_frame)"/>
+        <param name="subscribe_depth" type="bool" value="true"/>
+        <param name="approx_sync" type="bool" value="true"/>
+    </node>
+    
+    <!-- Visualization Node -->
+    <node if="$(arg use_rtabmap_viz)" pkg="rtabmap_viz" type="rtabmap_viz" name="rtabmap_viz" output="screen">
+        <remap from="rgb/image"       to="/$(arg name)/rgb/preview/image_rect"/>
+        <remap from="depth/image"     to="/$(arg name)/stereo/image_raw"/>
+        <remap from="rgb/camera_info" to="/$(arg name)/rgb/preview/camera_info"/>
+        <remap from="odom"            to="/rtabmap/odom"/>
+
+        <param name="frame_id" type="string" value="$(arg base_frame)"/>
+        <param name="subscribe_depth" type="bool" value="true"/>
+        <param name="approx_sync" type="bool" value="true"/>
+    </node>
+
+
+    <!-- ============== ONBOARD DETECTOR ================== -->
+    <rosparam file="$(find onboard_detector)/cfg/detector_param.yaml" ns="onboard_detector" />
+    <node pkg="onboard_detector" type="detector_node" name="detector_node" output="screen" />
+
+    <!-- Optional: RViz for the detector -->
+    <node if="$(arg use_detector_rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find onboard_detector)/rviz/detector.rviz"/>
+
+</launch>

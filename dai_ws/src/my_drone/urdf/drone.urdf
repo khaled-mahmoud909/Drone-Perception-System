@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="my_drone">
+  <!-- The main body of the drone, its center point -->
+  <link name="base_link"/>
+
+  <!-- A link representing the base of the camera -->
+  <link name="oak_d_base_frame"/>
+
+  <!-- A fixed joint connecting the camera to the drone's body -->
+  <!-- IMPORTANT: You must measure and update these values! -->
+  <!-- xyz is the position (x,y,z) in meters from base_link to camera -->
+  <!-- rpy is the orientation (roll,pitch,yaw) in radians -->
+  <joint name="camera_mount_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="oak_d_base_frame"/>
+    <origin xyz="0.1 0.0 0.05" rpy="0 0 0"/>
+  </joint>
+</robot>
