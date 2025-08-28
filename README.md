@@ -105,7 +105,7 @@ The entire system is orchestrated by a master launch file.
     ```
 3.  **Launch the Main System:** In another terminal, run the primary launch file.
     ```bash
-    roslaunch my_drone flight.launch
+    roslaunch my_drone my_drone_main.launch
     ```
     This will start the camera, perception stack, planners, and RViz.
 4.  **Launch the GUI:** On your ground machine, start the web server for the GUI.
